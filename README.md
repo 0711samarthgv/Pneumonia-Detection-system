@@ -1,8 +1,14 @@
-# Pneumonia Detection System
+# Engineering Projects
+
+Projects which are done in my engineering period.
+
+## Projects
+
+### Pneumonia Detection System
 
 An AI-powered web application for detecting pneumonia from chest X-ray images using deep learning. Built with Django and TensorFlow.
 
-## Features
+#### Features
 
 - **AI-Powered Analysis**: Upload chest X-ray images and get instant AI analysis
 - **Multiple Prediction Types**: Detect normal cases, bacterial pneumonia, and viral pneumonia
@@ -12,7 +18,7 @@ An AI-powered web application for detecting pneumonia from chest X-ray images us
 - **Responsive Design**: Modern, mobile-friendly interface
 - **API Support**: RESTful API for programmatic access
 
-## Technology Stack
+#### Technology Stack
 
 - **Backend**: Django 5.2.5
 - **Frontend**: Bootstrap 5, Font Awesome
@@ -20,19 +26,19 @@ An AI-powered web application for detecting pneumonia from chest X-ray images us
 - **Database**: SQLite (default), supports PostgreSQL/MySQL
 - **Image Processing**: Pillow (PIL)
 
-## Installation
+#### Installation
 
-### Prerequisites
+##### Prerequisites
 
 - Python 3.8 or higher
 - pip (Python package installer)
 
-### Setup Instructions
+##### Setup Instructions
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd PneumoniaDetection
+   git clone https://github.com/0711samarthgv/Engineering-Projects.git
+   cd Engineering-Projects
    ```
 
 2. **Create a virtual environment**
@@ -71,9 +77,9 @@ An AI-powered web application for detecting pneumonia from chest X-ray images us
    - Main application: http://127.0.0.1:8000/
    - Admin interface: http://127.0.0.1:8000/admin/
 
-## Usage
+#### Usage
 
-### Uploading Images
+##### Uploading Images
 
 1. Navigate to the upload page
 2. Drag and drop or select a chest X-ray image
@@ -81,7 +87,7 @@ An AI-powered web application for detecting pneumonia from chest X-ray images us
 4. Click "Analyze Image" to process
 5. View results with confidence scores
 
-### Supported Image Formats
+##### Supported Image Formats
 
 - JPEG (.jpg, .jpeg)
 - PNG (.png)
@@ -90,14 +96,14 @@ An AI-powered web application for detecting pneumonia from chest X-ray images us
 
 **Maximum file size**: 10MB
 
-### Viewing Results
+##### Viewing Results
 
 - **Home Page**: Overview with statistics and recent analyses
 - **Gallery**: Browse all analyzed images with filtering options
 - **Detail View**: Comprehensive information about each analysis
 - **Results Page**: Detailed analysis results with confidence scores
 
-## AI Model
+#### AI Model
 
 The current implementation includes a placeholder analysis function that simulates AI predictions. To integrate a real deep learning model:
 
@@ -106,7 +112,7 @@ The current implementation includes a placeholder analysis function that simulat
 3. Replace the `analyze_chest_xray()` function in `detection/views.py`
 4. Update the model loading and prediction logic
 
-### Example Model Integration
+##### Example Model Integration
 
 ```python
 import tensorflow as tf
@@ -131,17 +137,17 @@ def analyze_chest_xray(image_path):
     return result, confidence, 'unknown'
 ```
 
-## API Endpoints
+#### API Endpoints
 
-### Analyze Image
+##### Analyze Image
 - **URL**: `/api/analyze/`
 - **Method**: POST
 - **Body**: JSON with `image_path`
 - **Response**: Prediction results with confidence scores
 
-## Configuration
+#### Configuration
 
-### Environment Variables
+##### Environment Variables
 
 Create a `.env` file in the project root:
 
@@ -151,7 +157,7 @@ SECRET_KEY=your-secret-key-here
 DATABASE_URL=sqlite:///db.sqlite3
 ```
 
-### Database Configuration
+##### Database Configuration
 
 The default configuration uses SQLite. For production, consider using PostgreSQL or MySQL:
 
@@ -168,9 +174,9 @@ DATABASES = {
 }
 ```
 
-## Deployment
+#### Deployment
 
-### Production Settings
+##### Production Settings
 
 1. Set `DEBUG = False` in settings.py
 2. Configure a production database
@@ -178,7 +184,7 @@ DATABASES = {
 4. Configure your web server (nginx, Apache)
 5. Use a production WSGI server (Gunicorn, uWSGI)
 
-### Docker Deployment
+##### Docker Deployment
 
 ```dockerfile
 FROM python:3.9-slim
@@ -195,7 +201,7 @@ EXPOSE 8000
 CMD ["gunicorn", "pneumonia_detection.wsgi:application", "--bind", "0.0.0.0:8000"]
 ```
 
-## Contributing
+#### Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -203,22 +209,22 @@ CMD ["gunicorn", "pneumonia_detection.wsgi:application", "--bind", "0.0.0.0:8000
 4. Add tests if applicable
 5. Submit a pull request
 
-## License
+#### License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Medical Disclaimer
+#### Medical Disclaimer
 
 **IMPORTANT**: This application is for educational and research purposes only. The AI analysis should not replace professional medical diagnosis, treatment, or advice. Always consult with qualified healthcare professionals for medical decisions.
 
-## Support
+#### Support
 
 For support and questions:
 - Create an issue in the repository
 - Contact the development team
 - Check the documentation
 
-## Acknowledgments
+#### Acknowledgments
 
 - Chest X-ray datasets used for training
 - Medical imaging research community
