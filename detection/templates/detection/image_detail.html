@@ -1,0 +1,272 @@
+{% extends 'detection/base.html' %}
+
+{% block title %}{{ chest_xray.title|default:"Image Detail" }} - Pneumonia Detection System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'detection:home' %}">
+                            <i class="fas fa-home me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'detection:gallery' %}">Gallery</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        {{ chest_xray.title|default:"Image Detail" }}
+                    </li>
+                </ol>
+            </nav>
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="display-6 fw-bold mb-2">
+                        {{ chest_xray.title|default:"Untitled Image" }}
+                    </h1>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-calendar me-1"></i>
+                        Uploaded on {{ chest_xray.uploaded_at|date:"F d, Y at H:i" }}
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'detection:result' chest_xray.pk %}" class="btn btn-primary">
+                        <i class="fas fa-chart-line me-2"></i>View Results
+                    </a>
+                    <a href="{% url 'detection:upload' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-upload me-2"></i>Upload New
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Image Section -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-image me-2"></i>Chest X-Ray Image
+                    </h5>
+                </div>
+                <div class="card-body text-center p-0">
+                    <img src="{{ chest_xray.image.url }}" 
+                         alt="{{ chest_xray.title }}" 
+                         class="img-fluid" 
+                         style="max-height: 600px;">
+                </div>
+                <div class="card-footer">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <small class="text-muted">
+                                <i class="fas fa-file-image me-1"></i>
+                                Original Format
+                            </small>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted">
+                                <i class="fas fa-expand me-1"></i>
+                                Full Resolution
+                            </small>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted">
+                                <i class="fas fa-download me-1"></i>
+                                <a href="{{ chest_xray.image.url }}" download class="text-decoration-none">
+                                    Download
+                                </a>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Details -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-microscope me-2"></i>Analysis Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Prediction Status -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">PREDICTION STATUS</h6>
+                        <div class="d-flex align-items-center">
+                            <span class="badge prediction-badge fs-6
+                                {% if chest_xray.prediction == 'normal' %}bg-success
+                                {% elif chest_xray.prediction == 'pneumonia' %}bg-danger
+                                {% else %}bg-warning{% endif %}">
+                                <i class="fas 
+                                    {% if chest_xray.prediction == 'normal' %}fa-check-circle
+                                    {% elif chest_xray.prediction == 'pneumonia' %}fa-exclamation-triangle
+                                    {% else %}fa-clock{% endif %} me-2"></i>
+                                {{ chest_xray.get_prediction_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Confidence Score -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">CONFIDENCE SCORE</h6>
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="flex-grow-1 me-3">
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill 
+                                        {% if chest_xray.confidence_score >= 0.8 %}bg-success
+                                        {% elif chest_xray.confidence_score >= 0.6 %}bg-warning
+                                        {% else %}bg-danger{% endif %}"
+                                         style="width: {{ chest_xray.confidence_score|floatformat:0 }}%;">
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="fw-bold fs-5">{{ chest_xray.get_confidence_percentage }}</span>
+                        </div>
+                        <small class="text-muted">
+                            {% if chest_xray.confidence_score >= 0.8 %}
+                                <i class="fas fa-thumbs-up text-success me-1"></i>
+                                High confidence prediction
+                            {% elif chest_xray.confidence_score >= 0.6 %}
+                                <i class="fas fa-hand-paper text-warning me-1"></i>
+                                Moderate confidence prediction
+                            {% else %}
+                                <i class="fas fa-exclamation-triangle text-danger me-1"></i>
+                                Low confidence - manual review recommended
+                            {% endif %}
+                        </small>
+                    </div>
+
+                    <!-- Pneumonia Type -->
+                    {% if chest_xray.prediction == 'pneumonia' and chest_xray.pneumonia_type != 'unknown' %}
+                        <div class="mb-4">
+                            <h6 class="text-muted mb-2">PNEUMONIA TYPE</h6>
+                            <span class="badge bg-info fs-6">
+                                <i class="fas fa-virus me-2"></i>
+                                {{ chest_xray.get_pneumonia_type_display }}
+                            </span>
+                        </div>
+                    {% endif %}
+
+                    <!-- Processing Information -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">PROCESSING INFO</h6>
+                        {% if chest_xray.analysis_date %}
+                            <p class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-check me-2"></i>
+                                    Analyzed: {{ chest_xray.analysis_date|date:"M d, Y H:i" }}
+                                </small>
+                            </p>
+                        {% endif %}
+                        {% if chest_xray.processing_time %}
+                            <p class="mb-0">
+                                <small class="text-muted">
+                                    <i class="fas fa-stopwatch me-2"></i>
+                                    Processing time: {{ chest_xray.processing_time|floatformat:2 }} seconds
+                                </small>
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <!-- AI Model Info -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">AI MODEL</h6>
+                        <p class="mb-0">
+                            <small class="text-muted">
+                                <i class="fas fa-brain me-2"></i>
+                                Deep Learning CNN
+                            </small>
+                        </p>
+                        <p class="mb-0">
+                            <small class="text-muted">
+                                <i class="fas fa-cog me-2"></i>
+                                Version 1.0
+                            </small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Information -->
+    {% if chest_xray.notes %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-sticky-note me-2"></i>Notes
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">{{ chest_xray.notes|linebreaks }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Related Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tools me-2"></i>Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'detection:upload' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-upload me-2"></i>Upload New Image
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'detection:gallery' %}" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-images me-2"></i>View Gallery
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'detection:result' chest_xray.pk %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-chart-line me-2"></i>View Results
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'admin:detection_chestxrayimage_change' chest_xray.pk %}" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-edit me-2"></i>Edit in Admin
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medical Disclaimer -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-warning" role="alert">
+                <h6 class="alert-heading">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Medical Disclaimer
+                </h6>
+                <p class="mb-0">
+                    This AI analysis is for educational and research purposes only. 
+                    The results should not be used as a substitute for professional medical diagnosis, 
+                    treatment, or advice. Always consult with qualified healthcare professionals 
+                    for medical decisions and treatment options.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

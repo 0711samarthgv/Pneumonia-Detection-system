@@ -1,0 +1,276 @@
+{% extends 'detection/base.html' %}
+
+{% block title %}Gallery - Pneumonia Detection System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5 fw-bold mb-2">Analysis Gallery</h1>
+                    <p class="lead text-muted mb-0">
+                        Browse all analyzed chest X-ray images
+                    </p>
+                </div>
+                <a href="{% url 'detection:upload' %}" class="btn btn-primary">
+                    <i class="fas fa-upload me-2"></i>Upload New Image
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">
+                        <i class="fas fa-filter me-2"></i>Filter Results
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="predictionFilter" class="form-label">Prediction</label>
+                            <select class="form-select" id="predictionFilter" onchange="filterResults()">
+                                <option value="">All Predictions</option>
+                                <option value="normal" {% if prediction_filter == 'normal' %}selected{% endif %}>Normal</option>
+                                <option value="pneumonia" {% if prediction_filter == 'pneumonia' %}selected{% endif %}>Pneumonia</option>
+                                <option value="pending" {% if prediction_filter == 'pending' %}selected{% endif %}>Pending</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="sortBy" class="form-label">Sort By</label>
+                            <select class="form-select" id="sortBy" onchange="filterResults()">
+                                <option value="uploaded_at">Upload Date (Newest)</option>
+                                <option value="analysis_date">Analysis Date</option>
+                                <option value="confidence_score">Confidence Score</option>
+                                <option value="title">Title</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3 d-flex align-items-end">
+                            <button type="button" class="btn btn-outline-secondary" onclick="clearFilters()">
+                                <i class="fas fa-times me-2"></i>Clear Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Count -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <p class="text-muted mb-0">
+                    Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
+                </p>
+                <div class="d-flex gap-2">
+                    <span class="badge bg-success">{{ page_obj.paginator.count }} Total</span>
+                    {% if prediction_filter %}
+                        <span class="badge bg-info">Filtered</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gallery Grid -->
+    {% if page_obj %}
+        <div class="row">
+            {% for analysis in page_obj %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <!-- Image -->
+                        <div class="position-relative">
+                            <img src="{{ analysis.image.url }}" 
+                                 alt="{{ analysis.title }}" 
+                                 class="card-img-top" 
+                                 style="height: 200px; object-fit: cover;">
+                            
+                            <!-- Prediction Badge -->
+                            <div class="position-absolute top-0 end-0 m-2">
+                                <span class="badge prediction-badge
+                                    {% if analysis.prediction == 'normal' %}bg-success
+                                    {% elif analysis.prediction == 'pneumonia' %}bg-danger
+                                    {% else %}bg-warning{% endif %}">
+                                    <i class="fas 
+                                        {% if analysis.prediction == 'normal' %}fa-check-circle
+                                        {% elif analysis.prediction == 'pneumonia' %}fa-exclamation-triangle
+                                        {% else %}fa-clock{% endif %} me-1"></i>
+                                    {{ analysis.get_prediction_display }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                {{ analysis.title|default:"Untitled" }}
+                            </h5>
+                            
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    {{ analysis.uploaded_at|date:"M d, Y H:i" }}
+                                </small>
+                            </p>
+
+                            <!-- Confidence Score -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <small class="text-muted">Confidence</small>
+                                    <small class="fw-bold">{{ analysis.get_confidence_percentage }}</small>
+                                </div>
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill 
+                                        {% if analysis.confidence_score >= 0.8 %}bg-success
+                                        {% elif analysis.confidence_score >= 0.6 %}bg-warning
+                                        {% else %}bg-danger{% endif %}"
+                                         style="width: {{ analysis.confidence_score|floatformat:0 }}%;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pneumonia Type -->
+                            {% if analysis.prediction == 'pneumonia' and analysis.pneumonia_type != 'unknown' %}
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        <i class="fas fa-virus me-1"></i>
+                                        {{ analysis.get_pneumonia_type_display }}
+                                    </small>
+                                </p>
+                            {% endif %}
+
+                            <!-- Processing Time -->
+                            {% if analysis.processing_time %}
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        <i class="fas fa-stopwatch me-1"></i>
+                                        {{ analysis.processing_time|floatformat:2 }}s
+                                    </small>
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Card Footer -->
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a href="{% url 'detection:image_detail' analysis.pk %}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye me-1"></i>View Details
+                                </a>
+                                <a href="{% url 'detection:result' analysis.pk %}" 
+                                   class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-chart-line me-1"></i>Results
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <div class="row">
+                <div class="col-12">
+                    <nav aria-label="Gallery pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if prediction_filter %}&prediction={{ prediction_filter }}{% endif %}">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if prediction_filter %}&prediction={{ prediction_filter }}{% endif %}">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if prediction_filter %}&prediction={{ prediction_filter }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if prediction_filter %}&prediction={{ prediction_filter }}{% endif %}">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if prediction_filter %}&prediction={{ prediction_filter }}{% endif %}">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        {% endif %}
+
+    {% else %}
+        <!-- Empty State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-images text-muted mb-4" style="font-size: 4rem;"></i>
+                    <h3 class="text-muted mb-3">No images found</h3>
+                    <p class="text-muted mb-4">
+                        {% if prediction_filter %}
+                            No images match your current filter criteria.
+                        {% else %}
+                            No chest X-ray images have been analyzed yet.
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'detection:upload' %}" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>Upload First Image
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterResults() {
+    const predictionFilter = document.getElementById('predictionFilter').value;
+    const sortBy = document.getElementById('sortBy').value;
+    
+    let url = window.location.pathname + '?';
+    const params = new URLSearchParams();
+    
+    if (predictionFilter) {
+        params.append('prediction', predictionFilter);
+    }
+    
+    if (sortBy && sortBy !== 'uploaded_at') {
+        params.append('sort', sortBy);
+    }
+    
+    if (params.toString()) {
+        url += params.toString();
+    }
+    
+    window.location.href = url;
+}
+
+function clearFilters() {
+    window.location.href = window.location.pathname;
+}
+</script>
+{% endblock %}

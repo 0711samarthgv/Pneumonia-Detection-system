@@ -1,0 +1,200 @@
+{% extends 'detection/base.html' %}
+
+{% block title %}Home - Pneumonia Detection System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    AI-Powered Pneumonia Detection
+                </h1>
+                <p class="lead mb-4">
+                    Upload chest X-ray images and get instant AI-powered analysis for early pneumonia detection.
+                    Our advanced machine learning model helps healthcare professionals make faster, more accurate diagnoses.
+                </p>
+                <div class="d-flex gap-3">
+                    <a href="{% url 'detection:upload' %}" class="btn btn-light btn-lg">
+                        <i class="fas fa-upload me-2"></i>Upload X-Ray
+                    </a>
+                    <a href="{% url 'detection:gallery' %}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-images me-2"></i>View Gallery
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-lungs" style="font-size: 8rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-chart-line text-primary mb-3" style="font-size: 2rem;"></i>
+                        <h3 class="card-title">{{ total_analyses }}</h3>
+                        <p class="card-text text-muted">Total Analyses</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-check-circle text-success mb-3" style="font-size: 2rem;"></i>
+                        <h3 class="card-title">{{ normal_count }}</h3>
+                        <p class="card-text text-muted">Normal Cases</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-exclamation-triangle text-warning mb-3" style="font-size: 2rem;"></i>
+                        <h3 class="card-title">{{ pneumonia_count }}</h3>
+                        <p class="card-text text-muted">Pneumonia Cases</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-percentage text-info mb-3" style="font-size: 2rem;"></i>
+                        <h3 class="card-title">
+                            {% if total_analyses > 0 %}
+                                {{ normal_count|floatformat:1 }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </h3>
+                        <p class="card-text text-muted">Accuracy Rate</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Analyses Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="text-center mb-5">Recent Analyses</h2>
+            </div>
+        </div>
+        
+        {% if recent_analyses %}
+            <div class="row">
+                {% for analysis in recent_analyses %}
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-img-top" style="height: 200px; overflow: hidden;">
+                                <img src="{{ analysis.image.url }}" 
+                                     alt="{{ analysis.title }}" 
+                                     class="w-100 h-100 object-fit-cover">
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ analysis.title|default:"Untitled" }}</h5>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        {{ analysis.uploaded_at|date:"M d, Y H:i" }}
+                                    </small>
+                                </p>
+                                
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge prediction-badge 
+                                        {% if analysis.prediction == 'normal' %}bg-success
+                                        {% elif analysis.prediction == 'pneumonia' %}bg-danger
+                                        {% else %}bg-warning{% endif %}">
+                                        {{ analysis.get_prediction_display }}
+                                    </span>
+                                    <small class="text-muted">
+                                        Confidence: {{ analysis.get_confidence_percentage }}
+                                    </small>
+                                </div>
+                                
+                                {% if analysis.prediction == 'pneumonia' and analysis.pneumonia_type != 'unknown' %}
+                                    <p class="card-text">
+                                        <small class="text-muted">
+                                            Type: {{ analysis.get_pneumonia_type_display }}
+                                        </small>
+                                    </p>
+                                {% endif %}
+                                
+                                <a href="{% url 'detection:image_detail' analysis.pk %}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{% url 'detection:gallery' %}" class="btn btn-primary">
+                    View All Analyses
+                </a>
+            </div>
+        {% else %}
+            <div class="text-center">
+                <i class="fas fa-images text-muted mb-3" style="font-size: 4rem;"></i>
+                <h4 class="text-muted">No analyses yet</h4>
+                <p class="text-muted">Upload your first chest X-ray image to get started!</p>
+                <a href="{% url 'detection:upload' %}" class="btn btn-primary">
+                    <i class="fas fa-upload me-2"></i>Upload First Image
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="text-center mb-5">Why Choose Our System?</h2>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="text-center">
+                    <i class="fas fa-brain text-primary mb-3" style="font-size: 3rem;"></i>
+                    <h4>Advanced AI</h4>
+                    <p class="text-muted">
+                        Powered by state-of-the-art deep learning models trained on thousands of chest X-ray images.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="text-center">
+                    <i class="fas fa-bolt text-warning mb-3" style="font-size: 3rem;"></i>
+                    <h4>Fast Results</h4>
+                    <p class="text-muted">
+                        Get instant analysis results within seconds, helping you make quick clinical decisions.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="text-center">
+                    <i class="fas fa-shield-alt text-success mb-3" style="font-size: 3rem;"></i>
+                    <h4>Secure & Private</h4>
+                    <p class="text-muted">
+                        Your medical images are processed securely and never shared with third parties.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
