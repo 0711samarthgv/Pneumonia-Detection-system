@@ -1,8 +1,7 @@
-# Engineering Projects
+
 
 Projects which are done in my engineering period.
 
-## Projects
 
 ### Pneumonia Detection System
 
