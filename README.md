@@ -1,8 +1,4 @@
 
-
-Projects which are done in my engineering period.
-
-
 ### Pneumonia Detection System
 
 An AI-powered web application for detecting pneumonia from chest X-ray images using deep learning. Built with Django and TensorFlow.
